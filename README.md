@@ -17,7 +17,7 @@ Requirements
 --------------
 Before you get started, make sure you have:
 
-* Installed [Gdata](http://code.google.com/p/gdata-python-client/) (pip install gdata)
+* pip install -r requirements.txt (that will install gdata, httplib2 and oauth2client)
 * setup oauth2 for your app https://console.developers.google.com/apis/library
   * pick a web app
   * set the redirect uri to http://localhost:8080/
