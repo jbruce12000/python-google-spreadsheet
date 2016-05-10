@@ -19,14 +19,32 @@ Before you get started, make sure you have:
 
 * Installed [Gdata](http://code.google.com/p/gdata-python-client/) (pip install gdata)
 
+* setup oauth2 for your app https://console.developers.google.com/apis/library
+* pick a web app
+* set the redirect uri to http://localhost:8080/
+* grab the client_id and client_secret
+* put the client_id and client_secret in a local json formatted file named ./client_secrets.json like this...
+
+    {
+    "web": {
+        "client_id": "XXXXXXXXX",
+        "client_secret": "XXXXXXXX",
+        "redirect_uris": ["http://localhost"],
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://accounts.google.com/o/oauth2/token"
+        }
+    }
+
+* the spec is here... https://developers.google.com/api-client-library/python/guide/aaa_client_secrets if you care
+* the first time you run this, it will open a browser and have you verify it is ok for this app to access your google account.  after that, it'll be cached in a local file named ./creds.dat.
+
 Usage
 -----
 
 List Spreadsheets and Worksheets:
 
      >>> from google_spreadsheet.api import SpreadsheetAPI
-     >>> api = SpreadsheetAPI(GOOGLE_SPREADSHEET_USER, 
-            GOOGLE_SPREADSHEET_PASSWORD, GOOGLE_SPREADSHEET_SOURCE)
+     >>> api = SpreadsheetAPI()
      >>> spreadsheets = api.list_spreadsheets()
      >>> spreadsheets
      [('MyFirstSpreadsheet', 'tkZQWzwHEjKTWFFCAgw'), ('MySecondSpreadsheet', 't5I-ZPGdXjTrjMefHcg'), 
