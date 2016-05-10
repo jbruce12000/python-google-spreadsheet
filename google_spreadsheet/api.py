@@ -14,10 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import gdata.spreadsheet.service
-
+import gdata.service
+import httplib2
+from oauth2client.file import Storage
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client import tools
 
 ID_FIELD = '__rowid__'
-
 
 class WorksheetException(Exception):
     """Base class for spreadsheet exceptions.
@@ -26,19 +29,33 @@ class WorksheetException(Exception):
 
 
 class SpreadsheetAPI(object):
-    def __init__(self, email, password, source):
+    def __init__(self, client_secrets_file='./client_secrets.json',
+        credentials_file='./creds.dat'):
         """Initialise a Spreadsheet API wrapper.
 
-        :param email:
-            A string representing a google login email.
-        :param password:
-            A string representing a google login password.
-        :param source:
-            A string representing source (much like a user agent).
+        :param client_secrets_file:
+            A file containing xml secrets as defined here...
+        :param client_credentials_file:
+            A file used to cache credentials.
         """
-        self.email = email
-        self.password = password
-        self.source = source
+        self.credentials_file = credentials_file
+        self.client_secrets_file = client_secrets_file
+        self.storage = Storage(self.credentials_file)
+        self.credentials = self.storage.get()
+
+        if self.credentials is None or self.credentials.invalid:
+            self.flags = tools.argparser.parse_args(args=[])
+            self.flow = flow = flow_from_clientsecrets(self.client_secrets_file,
+                scope=["https://spreadsheets.google.com/feeds"])
+            self.credentials = tools.run_flow(self.flow, self.storage,
+                self.flags) 
+
+        if self.credentials.access_token_expired:
+            self.credentials.refresh(httplib2.Http())
+
+        self.client = gdata.spreadsheet.service.SpreadsheetsService(
+            additional_headers={'Authorization' : 'Bearer %s' % 
+            self.credentials.access_token})
 
     def _get_client(self):
         """Initialize a `gdata` client.
@@ -46,12 +63,7 @@ class SpreadsheetAPI(object):
         :returns:
             A gdata client.
         """
-        gd_client = gdata.spreadsheet.service.SpreadsheetsService()
-        gd_client.email = self.email
-        gd_client.password = self.password
-        gd_client.source = self.source
-        gd_client.ProgrammaticLogin()
-        return gd_client
+        return self.client
 
     def list_spreadsheets(self):
         """List Spreadsheets.
@@ -83,6 +95,8 @@ class SpreadsheetAPI(object):
             A string representing a google worksheet key.
         """
         return Worksheet(self._get_client(), spreadsheet_key, worksheet_key)
+
+# jb - I think I need a Spreadsheet class
 
 
 class Worksheet(object):
