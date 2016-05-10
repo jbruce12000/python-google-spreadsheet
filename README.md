@@ -46,15 +46,15 @@ Usage
 
 List Spreadsheets and Worksheets:
 
-     >>> from google_spreadsheet.api import SpreadsheetAPI
-     >>> api = SpreadsheetAPI()
-     >>> spreadsheets = api.list_spreadsheets()
-     >>> spreadsheets
-     [('MyFirstSpreadsheet', 'tkZQWzwHEjKTWFFCAgw'), ('MySecondSpreadsheet', 't5I-ZPGdXjTrjMefHcg'), 
-     ('MyThirdSpreadsheet', 't0heCWhzCmm9Y-GTTM_Q')]
-     >>> worksheets = api.list_worksheets(spreadsheets[0][1])
-     >>> worksheets
-     [('MyFirstWorksheet', 'od7'), ('MySecondWorksheet', 'od6'), ('MyThirdWorksheet', 'od4')]
+    >>> from google_spreadsheet.api import SpreadsheetAPI
+    >>> api = SpreadsheetAPI()
+    >>> spreadsheets = api.list_spreadsheets()
+    >>> spreadsheets
+    [('MyFirstSpreadsheet', 'tkZQWzwHEjKTWFFCAgw'), ('MySecondSpreadsheet', 't5I-ZPGdXjTrjMefHcg'), 
+    ('MyThirdSpreadsheet', 't0heCWhzCmm9Y-GTTM_Q')]
+    >>> worksheets = api.list_worksheets(spreadsheets[0][1])
+    >>> worksheets
+    [('MyFirstWorksheet', 'od7'), ('MySecondWorksheet', 'od6'), ('MyThirdWorksheet', 'od4')]
 
 Please note that in order to work with a Google Spreadsheet it must be accessible
 to the user who's login credentials are provided. The `GOOGLE_SPREADSHEET_SOURCE`
@@ -62,7 +62,9 @@ argument is used by Google to identify your application and track API calls.
 
 Working with a Worksheet:
 
-    >>> sheet = spreadsheet.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
+    >>> from google_spreadsheet.api import SpreadsheetAPI
+    >>> api = SpreadsheetAPI()
+    >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
     >>> rows = sheet.get_rows()
     >>> len(rows)
     18
@@ -79,18 +81,20 @@ Working with a Worksheet:
 
 Advanced Queries:
 
-    >>> sheet = spreadsheet.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
+    >>> from google_spreadsheet.api import SpreadsheetAPI
+    >>> api = SpreadsheetAPI()
+    >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
     >>> rows = sheet.get_rows(query='name = "Joe" and height < 175')
 
 Or filter in memory:
 
-    >>> sheet = spreadsheet.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
+    >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
     >>> filtered_rows = sheet.get_rows(
             filter_func=lambda row: row['status'] == "READY")
 
 Sort:
 
-    >>> sheet = spreadsheet.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
+    >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
     >>> rows = sheet.get_rows(order_by='column:age', reverse='true')
 
 That's it.
