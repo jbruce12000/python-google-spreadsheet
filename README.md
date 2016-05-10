@@ -18,11 +18,10 @@ Requirements
 Before you get started, make sure you have:
 
 * Installed [Gdata](http://code.google.com/p/gdata-python-client/) (pip install gdata)
-
 * setup oauth2 for your app https://console.developers.google.com/apis/library
-* pick a web app
-* set the redirect uri to http://localhost:8080/
-* grab the client_id and client_secret
+  * pick a web app
+  * set the redirect uri to http://localhost:8080/
+  * grab the client_id and client_secret
 * put the client_id and client_secret in a local json formatted file named ./client_secrets.json like this...
 
     {
