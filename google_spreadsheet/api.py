@@ -118,6 +118,57 @@ class Worksheet(object):
         self.keys = {'key': spreadsheet_key, 'wksht_id': worksheet_key}
         self.entries = None
         self.query = None
+        self.cells = self.gd_client.GetCellsFeed(self.spreadsheet_key,
+            self.worksheet_key)
+
+    def find_cell(self,value):
+        """find the first cell with the given value"""
+        for cell in enumerate(self.cells.entry):
+            # cell is a tuple of entry id and cell object
+            if cell[1].content.text == value:
+                #import pdb; pdb.set_trace()
+                #print cell[1].cell.row
+                #print cell[1].cell.col
+                return cell
+        return None
+
+    def batch_update_rows(self,data=[]):
+        # array of arrays here
+        # need to move batchRequest here, update here too
+
+    def batch_update_row(self,data=[]):
+        batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
+        cell = self.find_cell(data[0])
+        if cell:
+            for x in range(0,len(data)-1):
+                #import pdb; pdb.set_trace()
+                ccell = self.cells.entry[cell[0]+x]
+                if ccell.content.text != data[x]:
+                    ccell.cell.inputValue = data[x]
+                    batchRequest.AddUpdate(ccell)
+                    
+        updated = self.gd_client.ExecuteBatch(batchRequest, self.cells.GetBatchLink().href)
+        print updated
+
+             
+
+    def batch(self):
+
+        batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
+
+        # This sample changes the first four cells in the spreadsheet.
+        self.cells.entry[1].cell.inputValue = 'x'
+        batchRequest.AddUpdate(self.cells.entry[1])
+
+        #import pdb; pdb.set_trace()
+        #cells.entry[2].cell.inputValue = 'y'
+        #batchRequest.AddUpdate(cells.entry[2])
+        #cells.entry[3].cell.inputValue = 'z'
+        #batchRequest.AddUpdate(cells.entry[3])
+        
+        #cells.entry[5].cell.row and col return integers
+
+        updated = self.gd_client.ExecuteBatch(batchRequest, cells.GetBatchLink().href)
 
     def _row_to_dict(self, row):
         """Turn a row of values into a dictionary.
@@ -315,10 +366,16 @@ class Worksheet(object):
         self.gd_client.DeleteRow(entry)
         del self.entries[index]
 
-    def delete_all_rows(self):
+    def delete_all_rows(self,header_rows=0):
         """Delete All Rows
         """
         entries = self._get_row_entries(self.query)
-        for entry in entries:
-            self.gd_client.DeleteRow(entry)
+        if header_rows:
+            stuff_to_delete = range(header_rows,len(entries))
+            stuff_to_delete.reverse()
+            for x in stuff_to_delete:
+                self.delete_row_by_index(x)
+        else: 
+            for entry in entries:
+                self.gd_client.DeleteRow(entry)
         self._flush_cache()
