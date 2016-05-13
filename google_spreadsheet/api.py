@@ -96,9 +96,6 @@ class SpreadsheetAPI(object):
         """
         return Worksheet(self._get_client(), spreadsheet_key, worksheet_key)
 
-# jb - I think I need a Spreadsheet class
-
-
 class Worksheet(object):
     """Worksheet wrapper class.
     """
@@ -120,55 +117,74 @@ class Worksheet(object):
         self.query = None
         self.cells = self.gd_client.GetCellsFeed(self.spreadsheet_key,
             self.worksheet_key)
+        self.batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
+        self.header_row = self.set_header_row()
 
-    def find_cell(self,value):
-        """find the first cell with the given value"""
+    def find_cell(self,row=1,col=1):
+        """find the cell with the given row and col"""
+        row = str(row)
+        col = str(col)
         for cell in enumerate(self.cells.entry):
-            # cell is a tuple of entry id and cell object
-            if cell[1].content.text == value:
-                #import pdb; pdb.set_trace()
-                #print cell[1].cell.row
-                #print cell[1].cell.col
-                return cell
+            if cell[1].cell.row == row:
+                if cell[1].cell.col == col:
+                    return cell[1]
         return None
 
-    def batch_update_rows(self,data=[]):
-        # array of arrays here
-        # need to move batchRequest here, update here too
+    def batch(self,row=2,col=1,data=[]):
+        """Batch Import a list of lists to a specific location.
+        :param row:
+            The row on which to start the batch import - integer
+        :param column:
+            The column on which to start the batch import - integer
+        :param data:
+            The data to batch import - list of lists
+        """
+        r = row
+        for rowdata in data:
+            c = col
+            for coldata in rowdata:
+                cell = self.find_cell(r,c)
+                if cell:
+                    if cell.content.text != coldata:
+                        cell.cell.inputValue = coldata
+                        self.batchRequest.AddUpdate(cell)
+                else:
+                    # this cell is missing in the spreadsheet
+                    # assume we must create a new row at the end for it
+                    # this is a serious flaw when cells are empty
+                    self.insert_as_last(rowdata)
+                    break
+                c = c + 1
+            r = r + 1
+        updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
 
-    def batch_update_row(self,data=[]):
-        batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
-        cell = self.find_cell(data[0])
-        if cell:
-            for x in range(0,len(data)-1):
-                #import pdb; pdb.set_trace()
-                ccell = self.cells.entry[cell[0]+x]
-                if ccell.content.text != data[x]:
-                    ccell.cell.inputValue = data[x]
-                    batchRequest.AddUpdate(ccell)
-                    
-        updated = self.gd_client.ExecuteBatch(batchRequest, self.cells.GetBatchLink().href)
-        print updated
+    def set_header_row(self):
+        header = []
+        c = 1
+        while True:
+           cell = self.find_cell(1,c)
+           if cell:
+               header.append(cell.content.text)
+           else:
+               break
+           c = c + 1
+        return header
 
-             
+    def insert_as_last(self,data):
+        """
+        Insert a row given a list.  Since I am taking a list,
+        I must assume the first row is header row and use that
+        to create a dict to pass to gdata.
+        :param data:
+            A list containing a row of data where each element is a column
+        """
 
-    def batch(self):
+        # create a dict for insertion
+        row_to_insert = {}
+        for x in range(0,len(self.header_row)):
+            row_to_insert[self.header_row[x]] = data[x]
+        return self.insert_row(row_to_insert)
 
-        batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
-
-        # This sample changes the first four cells in the spreadsheet.
-        self.cells.entry[1].cell.inputValue = 'x'
-        batchRequest.AddUpdate(self.cells.entry[1])
-
-        #import pdb; pdb.set_trace()
-        #cells.entry[2].cell.inputValue = 'y'
-        #batchRequest.AddUpdate(cells.entry[2])
-        #cells.entry[3].cell.inputValue = 'z'
-        #batchRequest.AddUpdate(cells.entry[3])
-        
-        #cells.entry[5].cell.row and col return integers
-
-        updated = self.gd_client.ExecuteBatch(batchRequest, cells.GetBatchLink().href)
 
     def _row_to_dict(self, row):
         """Turn a row of values into a dictionary.
