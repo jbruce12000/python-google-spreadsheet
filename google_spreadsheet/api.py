@@ -152,8 +152,13 @@ class Worksheet(object):
                     # this cell is missing in the spreadsheet
                     # assume we must create a new row at the end for it
                     # this is a serious flaw when cells are empty
-                    self.insert_as_last(rowdata)
-                    break
+                    # so I am assuming that first column is the only one
+                    # I care about.  In my case it is a key, so it should
+                    # always be there.  if it's not, a row should be inserted
+                    # at the end
+                    if c == 1:
+                        self.insert_as_last(rowdata)
+                        break
                 c = c + 1
             r = r + 1
         updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
