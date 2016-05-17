@@ -20,7 +20,6 @@ Before you get started, make sure you have:
 * virtualenv venv
 * source venv/bin/activate
 * pip install -e git+git@github.com:jbruce12000/python-google-spreadsheet.git#egg=google_spreadsheet
-* cd venv/
 * pip install -r venv/src/google-spreadsheet/requirements.txt (that will install gdata, httplib2 and oauth2client)
 * setup oauth2 for your app https://console.developers.google.com/apis/library
   * pick web app
