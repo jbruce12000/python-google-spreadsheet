@@ -97,6 +97,16 @@ Sort:
     >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
     >>> rows = sheet.get_rows(order_by='column:age', reverse='true')
 
+Batch Update:
+
+    This is experimental.  If you want to bulk update a spreadsheet and the
+    first column is the key and the data has one header row, you can use this.
+    If key exists that row is updated.  If not, the row is inserted.  Blank
+    cells do NOT get updated.  This is much faster than delete / insert.
+
+    >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
+    >>> sheet.batch_verify_key_content([['key1','a','1'],['key2','b','2']])
+
 That's it.
 
 For more information about these calls, please consult the [Google Spreadsheets
