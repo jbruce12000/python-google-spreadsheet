@@ -129,10 +129,17 @@ class Worksheet(object):
         return None
 
     def batch_verify_key_content(self,data=[]):
-        # assume first column given is the key and should be verified
-        # assume first row in spreadsheet is header
-        # this does not handle content that was deleted
-        # also, does not update cells that are empty
+        """
+        import a list of lists of data into a spreadsheet.  Check each row to
+        see if it already exists.  If it does exist based on using the first
+        column as the key, update any other columns that need it.  If it does
+        not exist, insert it at the end of the spreadsheet.  This does not
+        update cells that are empty.  This is intended to be used when you
+        have data that changes and updates are necessary.
+       
+        :param data:
+            list of lists where each inner list is a row
+        """
         for row in data:
             cell = self.find_cell_by_contents(row[0])
             if cell and cell.cell.col == '1':
@@ -147,8 +154,16 @@ class Worksheet(object):
         updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
 
     def next_cell(self,cell):
-        #return the next cell in the row or None
-        #empty cells dont exist to the google api for whatever reason
+        """find the next cell in this row.  Empty cells do not exist to the
+        google api for whatever reason.
+
+        :param cell:
+            gdata.spreadsheet.SpreadsheetsCell object 
+            used to get the current row 
+        :return:
+            gdata.spreadsheet.SpreadsheetsCell object
+            None if there is no matching cell
+        """
         col = int(cell.cell.col)
         col = col + 1
         return self.find_cell(cell.cell.row,col)
