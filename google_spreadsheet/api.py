@@ -120,6 +120,39 @@ class Worksheet(object):
         self.batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
         self.header_row = self.set_header_row()
 
+
+    def find_cell_by_contents(self,searchfor):
+        """find the cell with the given contents"""
+        for cell in enumerate(self.cells.entry):
+            if cell[1].content.text == searchfor:
+                return cell[1]
+        return None
+
+    def batch_verify_key_content(self,data=[]):
+        # assume first column given is the key and should be verified
+        # assume first row in spreadsheet is header
+        # this does not handle content that was deleted
+        # also, does not update cells that are empty
+        for row in data:
+            cell = self.find_cell_by_contents(row[0])
+            if cell and cell.cell.col == '1':
+                for col in row:
+                    cell.cell.inputValue = col
+                    self.batchRequest.AddUpdate(cell)
+                    cell = self.next_cell(cell)
+                    if cell is None:
+                        break
+            else:
+                self.insert_as_last(row)
+        updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
+
+    def next_cell(self,cell):
+        #return the next cell in the row or None
+        #empty cells dont exist to the google api for whatever reason
+        col = int(cell.cell.col)
+        col = col + 1
+        return self.find_cell(cell.cell.row,col)
+
     def find_cell(self,row=1,col=1):
         """find the cell with the given row and col"""
         row = str(row)
