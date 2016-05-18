@@ -175,7 +175,7 @@ class TestWorksheet(TestCase):
         assert_equals(len(self.sheet.get_rows()), 0)
         # add back the rows that were there so the other tests still pass
         for row in rows:
-          self.sheet.insert_row(row)
+            self.sheet.insert_row(row)
 
     def test_query(self):
         """Test Query.

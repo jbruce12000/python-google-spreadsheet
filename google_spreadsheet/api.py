@@ -22,6 +22,7 @@ from oauth2client import tools
 
 ID_FIELD = '__rowid__'
 
+
 class WorksheetException(Exception):
     """Base class for spreadsheet exceptions.
     """
@@ -29,8 +30,7 @@ class WorksheetException(Exception):
 
 
 class SpreadsheetAPI(object):
-    def __init__(self, client_secrets_file='./client_secrets.json',
-        credentials_file='./creds.dat'):
+    def __init__(self, client_secrets_file='./client_secrets.json', credentials_file='./creds.dat'):
         """Initialise a Spreadsheet API wrapper.
 
         :param client_secrets_file:
@@ -48,13 +48,13 @@ class SpreadsheetAPI(object):
             self.flow = flow = flow_from_clientsecrets(self.client_secrets_file,
                 scope=["https://spreadsheets.google.com/feeds"])
             self.credentials = tools.run_flow(self.flow, self.storage,
-                self.flags) 
+                self.flags)
 
         if self.credentials.access_token_expired:
             self.credentials.refresh(httplib2.Http())
 
         self.client = gdata.spreadsheet.service.SpreadsheetsService(
-            additional_headers={'Authorization' : 'Bearer %s' % 
+            additional_headers={'Authorization': 'Bearer %s' %
             self.credentials.access_token})
 
     def _get_client(self):
@@ -96,6 +96,7 @@ class SpreadsheetAPI(object):
         """
         return Worksheet(self._get_client(), spreadsheet_key, worksheet_key)
 
+
 class Worksheet(object):
     """Worksheet wrapper class.
     """
@@ -120,15 +121,14 @@ class Worksheet(object):
         self.batchRequest = gdata.spreadsheet.SpreadsheetsCellsFeed()
         self.header_row = self.set_header_row()
 
-
-    def find_cell_by_contents(self,searchfor):
+    def find_cell_by_contents(self, searchfor):
         """find the cell with the given contents"""
         for cell in enumerate(self.cells.entry):
             if cell[1].content.text == searchfor:
                 return cell[1]
         return None
 
-    def batch_verify_key_content(self,data=[]):
+    def batch_verify_key_content(self, data=[]):
         """
         import a list of lists of data into a spreadsheet.  Check each row to
         see if it already exists.  If it does exist based on using the first
@@ -136,7 +136,7 @@ class Worksheet(object):
         not exist, insert it at the end of the spreadsheet.  This does not
         update cells that are empty.  This is intended to be used when you
         have data that changes and updates are necessary.
-       
+
         :param data:
             list of lists where each inner list is a row
         """
@@ -153,22 +153,22 @@ class Worksheet(object):
                 self.insert_as_last(row)
         updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
 
-    def next_cell(self,cell):
+    def next_cell(self, cell):
         """find the next cell in this row.  Empty cells do not exist to the
         google api for whatever reason.
 
         :param cell:
-            gdata.spreadsheet.SpreadsheetsCell object 
-            used to get the current row 
+            gdata.spreadsheet.SpreadsheetsCell object
+            used to get the current row
         :return:
             gdata.spreadsheet.SpreadsheetsCell object
             None if there is no matching cell
         """
         col = int(cell.cell.col)
         col = col + 1
-        return self.find_cell(cell.cell.row,col)
+        return self.find_cell(cell.cell.row, col)
 
-    def find_cell(self,row=1,col=1):
+    def find_cell(self, row=1, col=1):
         """find the cell with the given row and col"""
         row = str(row)
         col = str(col)
@@ -178,7 +178,7 @@ class Worksheet(object):
                     return cell[1]
         return None
 
-    def batch(self,row=2,col=1,data=[]):
+    def batch(self, row=2, col=1, data=[]):
         """Batch Import a list of lists to a specific location.
         :param row:
             The row on which to start the batch import - integer
@@ -191,7 +191,7 @@ class Worksheet(object):
         for rowdata in data:
             c = col
             for coldata in rowdata:
-                cell = self.find_cell(r,c)
+                cell = self.find_cell(r, c)
                 if cell:
                     if cell.content.text != coldata:
                         cell.cell.inputValue = coldata
@@ -215,15 +215,15 @@ class Worksheet(object):
         header = []
         c = 1
         while True:
-           cell = self.find_cell(1,c)
-           if cell:
-               header.append(cell.content.text)
-           else:
-               break
-           c = c + 1
+            cell = self.find_cell(1, c)
+            if cell:
+                header.append(cell.content.text)
+            else:
+                break
+            c = c + 1
         return header
 
-    def insert_as_last(self,data):
+    def insert_as_last(self, data):
         """
         Insert a row given a list.  Since I am taking a list,
         I must assume the first row is header row and use that
@@ -234,10 +234,9 @@ class Worksheet(object):
 
         # create a dict for insertion
         row_to_insert = {}
-        for x in range(0,len(self.header_row)):
+        for x in range(0, len(self.header_row)):
             row_to_insert[self.header_row[x]] = data[x]
         return self.insert_row(row_to_insert)
-
 
     def _row_to_dict(self, row):
         """Turn a row of values into a dictionary.
@@ -435,16 +434,16 @@ class Worksheet(object):
         self.gd_client.DeleteRow(entry)
         del self.entries[index]
 
-    def delete_all_rows(self,header_rows=0):
+    def delete_all_rows(self, header_rows=0):
         """Delete All Rows
         """
         entries = self._get_row_entries(self.query)
         if header_rows:
-            stuff_to_delete = range(header_rows,len(entries))
+            stuff_to_delete = range(header_rows, len(entries))
             stuff_to_delete.reverse()
             for x in stuff_to_delete:
                 self.delete_row_by_index(x)
-        else: 
+        else:
             for entry in entries:
                 self.gd_client.DeleteRow(entry)
         self._flush_cache()
