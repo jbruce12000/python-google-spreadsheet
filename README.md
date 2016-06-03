@@ -9,6 +9,7 @@ Features
 * An object oriented interface for Worksheets
 * Supports List Feed view of spreadsheet rows, represented as dictionaries
 * Compatible with Google App Engine
+* Supports oauth
 
 Requirements
 --------------
