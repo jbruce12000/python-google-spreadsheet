@@ -96,13 +96,18 @@ Sort:
 
 Batch Update:
 
-    This is experimental.  If you want to bulk update a spreadsheet and the
-    first column is the key and the data has one header row, you can use this.
-    If key exists that row is updated.  If not, the row is inserted.  Blank
-    cells do NOT get updated.  This is much faster than delete / insert.
+    This is experimental. This takes starting x,y (upper left) and
+    ending x,y (lower right) coordinates of a box in the spreadsheet
+    and fills it with data in the given list of lists.  cells in the
+    box, but not in the data are blanked out.  This operation is fast
+    and is much better than deleting rows and adding rows.
+
+    This example would populate two rows with 3 populated columns.
+    All cells in the 4th column and all cells in rows 3 to 10 will
+    be blanked out because there is no data for them.
 
     >>> sheet = api.get_worksheet('tkZQWzwHEjKTWFFCAgw', 'od7')
-    >>> sheet.batch_verify_key_content([['key1','a','1'],['key2','b','2']])
+    >>> sheet.batch((2,1),(10,4),[['row1','a','1'],['row2','b','2']])
 
 That's it.
 

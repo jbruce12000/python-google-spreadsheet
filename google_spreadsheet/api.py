@@ -178,37 +178,49 @@ class Worksheet(object):
                     return cell[1]
         return None
 
-    def batch(self, row=2, col=1, data=[]):
+    def update_cell(self,row,col,val):
+        # .77 sec / call or about 4675 cells/hour
+        # this does create the cell though if it is blank or does not exist
+        # which is cool
+        return self.gd_client.UpdateCell(row,col,val,self.spreadsheet_key,self.worksheet_key)
+
+    def batch(self, startxy=(2,1),endxy=(10,4), data=[]):
         """Batch Import a list of lists to a specific location.
-        :param row:
-            The row on which to start the batch import - integer
+        :param startxy:
+            start row,column - integers
         :param column:
-            The column on which to start the batch import - integer
+            end row,column - integers
         :param data:
             The data to batch import - list of lists
+
+        data always starts at startxy
+        data outside the given startxy / endxy range is ignored
+        insufficient data is set as a blank
         """
-        r = row
-        for rowdata in data:
-            c = col
-            for coldata in rowdata:
+
+        for r in range(startxy[0],endxy[0]+1):
+            for c in range(startxy[1],endxy[1]+1):
+
+                # get content from data passed in
+                # is this cell within the data passed in? then grab it
+                content = ''
                 cell = self.find_cell(r, c)
-                if cell:
-                    if cell.content.text != coldata:
-                        cell.cell.inputValue = coldata
+                try:
+                    content = str(data[r-startxy[0]][c-startxy[1]])
+                except (IndexError):
+                    if cell:
+                        cell.cell.inputValue = ''
                         self.batchRequest.AddUpdate(cell)
+                        # do not want to update_cell here
+                        # it's already blank, leave it alone
+                    continue
+                if cell:
+                    cell.cell.inputValue = content
+                    self.batchRequest.AddUpdate(cell)
                 else:
-                    # this cell is missing in the spreadsheet
-                    # assume we must create a new row at the end for it
-                    # this is a serious flaw when cells are empty
-                    # so I am assuming that first column is the only one
-                    # I care about.  In my case it is a key, so it should
-                    # always be there.  if it's not, a row should be inserted
-                    # at the end
-                    if c == 1:
-                        self.insert_as_last(rowdata)
-                        break
-                c = c + 1
-            r = r + 1
+                    self.update_cell(r,c,content)
+
+
         updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
 
     def set_header_row(self):
