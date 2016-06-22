@@ -178,13 +178,13 @@ class Worksheet(object):
                     return cell[1]
         return None
 
-    def update_cell(self,row,col,val):
+    def update_cell(self, row, col, val):
         # .77 sec / call or about 4675 cells/hour
         # this does create the cell though if it is blank or does not exist
         # which is cool
-        return self.gd_client.UpdateCell(row,col,val,self.spreadsheet_key,self.worksheet_key)
+        return self.gd_client.UpdateCell(row, col, val, self.spreadsheet_key, self.worksheet_key)
 
-    def batch(self, startxy=(2,1),endxy=(10,4), data=[]):
+    def batch(self, startxy=(2, 1), endxy=(10, 4), data=[]):
         """Batch Import a list of lists to a specific location.
         :param startxy:
             start row,column - integers
@@ -198,15 +198,15 @@ class Worksheet(object):
         insufficient data is set as a blank
         """
 
-        for r in range(startxy[0],endxy[0]+1):
-            for c in range(startxy[1],endxy[1]+1):
+        for r in range(startxy[0], endxy[0] + 1):
+            for c in range(startxy[1], endxy[1] + 1):
 
                 # get content from data passed in
                 # is this cell within the data passed in? then grab it
                 content = ''
                 cell = self.find_cell(r, c)
                 try:
-                    content = str(data[r-startxy[0]][c-startxy[1]])
+                    content = str(data[r - startxy[0]][c - startxy[1]])
                 except (IndexError):
                     if cell:
                         cell.cell.inputValue = ''
@@ -218,8 +218,7 @@ class Worksheet(object):
                     cell.cell.inputValue = content
                     self.batchRequest.AddUpdate(cell)
                 else:
-                    self.update_cell(r,c,content)
-
+                    self.update_cell(r, c, content)
 
         updated = self.gd_client.ExecuteBatch(self.batchRequest, self.cells.GetBatchLink().href)
 
